@@ -1,0 +1,60 @@
+from rest_framework.test import APIClient
+from testing.testcases import TestCase
+
+
+LOGIN_URL = '/api/accounts/login/'
+LOGOUT_URL = '/api/accounts/logout/'
+SIGNUP_URL = '/api/accounts/signup/'
+LOGIN_STATUS_URL = '/api/accounts/login_status/'
+
+class AccountApiTests(TestCase):
+
+    def setUp(self):
+        # this function will be run at each test function is executed
+        self.client = APIClient()
+        self.user = self.create_user(
+            username='admin',
+            email='admin@jiuzhang.com',
+            password='correct password',
+        )
+
+    def test_login(self):
+        # every function must start with test_ to be automatically executed
+        # must use post not get
+        response = self.client.get(LOGIN_URL, {
+            'username': self.user.username,
+            'password': 'correct password',
+        })
+        # login fail，http status code return 405 = METHOD_NOT_ALLOWED
+        self.assertEqual(response.status_code, 405)
+        # used post but wrong password
+        response = self.client.post(LOGIN_URL, {
+            'username': self.user.username,
+            'password': 'wrong password',
+        })
+        self.assertEqual(response.status_code, 400)
+        # varified but not login
+        response = self.client.get(LOGIN_STATUS_URL)
+        self.assertEqual(response.data['has_logged_in'], False)
+        # correct password
+        response = self.client.post(LOGIN_URL, {
+            'username': self.user.username,
+            'password': 'correct password',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(response.data['user'], None)
+        self.assertEqual(response.data['user']['email'], 'admin@jiuzhang.com')
+        # varified and logined
+        response = self.client.get(LOGIN_STATUS_URL)
+        self.assertEqual(response.data['has_logged_in'], True)
+
+    def test_logout(self):
+        # login
+        self.client.post(LOGIN_URL, {
+            'username': self.user.username,
+            'password': 'correct password',
+        })
+        # test whether the user is login
+        response = self.client.get(LOGIN_STATUS_URL)
+        self.assertEqual(response.data['has_logged_in'], True)
+        # test must use post

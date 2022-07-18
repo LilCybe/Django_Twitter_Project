@@ -10,8 +10,9 @@ class NewsFeedViewSet(viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # need to custom queryset，because newsfeed needs permission to check
-        # only can watch current user's newsfeed
+        # custom queryset，because need permission to check newsfeed
+        # can only check user=current user's newsfeed
+        # or self.request.user.newsfeed_set.all()
         return NewsFeed.objects.filter(user=self.request.user)
 
     def list(self, request):

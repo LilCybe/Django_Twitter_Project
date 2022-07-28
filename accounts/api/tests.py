@@ -1,11 +1,13 @@
 from rest_framework.test import APIClient
 from testing.testcases import TestCase
+from accounts.models import UserProfile
 
 
 LOGIN_URL = '/api/accounts/login/'
 LOGOUT_URL = '/api/accounts/logout/'
 SIGNUP_URL = '/api/accounts/signup/'
 LOGIN_STATUS_URL = '/api/accounts/login_status/'
+
 
 class AccountApiTests(TestCase):
 
@@ -58,3 +60,57 @@ class AccountApiTests(TestCase):
         response = self.client.get(LOGIN_STATUS_URL)
         self.assertEqual(response.data['has_logged_in'], True)
         # test must use post
+        response = self.client.get(LOGOUT_URL)
+        self.assertEqual(response.status_code, 405)
+        # use post success logout
+        response = self.client.post(LOGOUT_URL)
+        self.assertEqual(response.status_code, 200)
+        # verified the user is logout
+        response = self.client.get(LOGIN_STATUS_URL)
+        self.assertEqual(response.data['has_logged_in'], False)
+
+    def test_signup(self):
+        data = {
+            'username': 'someone',
+            'email': 'someone@jiuzhang.com',
+            'password': 'any password',
+        }
+        # test get failed
+        response = self.client.get(SIGNUP_URL, data)
+        self.assertEqual(response.status_code, 405)
+
+        # test wrong email
+        response = self.client.post(SIGNUP_URL, {
+            'username': 'someone',
+            'email': 'not a correct email',
+            'password': 'any password'
+        })
+        # print(response.data)
+        self.assertEqual(response.status_code, 400)
+        # test too short password
+        response = self.client.post(SIGNUP_URL, {
+            'username': 'someone',
+            'email': 'someone@jiuzhang.com',
+            'password': '123',
+        })
+        # print(response.data)
+        self.assertEqual(response.status_code, 400)
+        # test too long passowrd
+        response = self.client.post(SIGNUP_URL, {
+            'username': 'username is tooooooooooooooooo loooooooong',
+            'email': 'someone@jiuzhang.com',
+            'password': 'any password',
+        })
+        # print(response.data)
+        self.assertEqual(response.status_code, 400)
+        # successfully register
+        response = self.client.post(SIGNUP_URL, data)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data['user']['username'], 'someone')
+        # verify user profile is created
+        created_user_id = response.data['user']['id']
+        profile = UserProfile.objects.filter(user_id=created_user_id).first()
+        self.assertNotEqual(profile, None)
+        # verify use is logged in
+        response = self.client.get(LOGIN_STATUS_URL)
+        self.assertEqual(response.data['has_logged_in'], True)

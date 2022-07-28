@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     # third party
     'rest_framework',
     'django_filters',
+    'notifications',
   
     # project apps
     'accounts',

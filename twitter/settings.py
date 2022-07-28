@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'newsfeeds',
     'comments',
     'like',
+    'inbox',
 ]
 
 REST_FRAMEWORK = {

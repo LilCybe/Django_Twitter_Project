@@ -1,8 +1,9 @@
 from rest_framework.permissions import BasePermission
 
+
 class IsObjectOwner(BasePermission):
     """
-    Permission checks obj.user == request.user
+    This Permission in charge of check obj.user == request.user or not
     """
     message = "You do not have permission to access this object"
 

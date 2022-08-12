@@ -156,6 +156,22 @@ AWS_S3_REGION_NAME = 'us-west-1'
 
 # use local setting for AWS access key and secret access key
 
+# https://docs.djangoproject.com/en/3.1/topics/cache/
+# sudo opt-get install memcached
+# use `pip install python-memcached`
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+        'TIMEOUT': 86400,
+    },
+    'testing': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+        'TIMEOUT': 86400,
+        'KEY_PREFIX': 'testing',
+    },
+}
 
 try:
     from .local_settings import *

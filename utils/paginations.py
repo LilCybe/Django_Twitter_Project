@@ -1,6 +1,7 @@
 from rest_framework.pagination import BasePagination
 from rest_framework.response import Response
 from dateutil import parser
+from django.conf import settings
 
 
 class EndlessPagination(BasePagination):
@@ -58,6 +59,20 @@ class EndlessPagination(BasePagination):
         queryset = queryset.order_by('-created_at')[:self.page_size + 1]
         self.has_next_page = len(queryset) > self.page_size
         return queryset[:self.page_size]
+
+    def paginate_cached_list(self, cached_list, request):
+        paginated_list = self.paginate_ordered_list(cached_list, request)
+        # if page up，paginated_list has newest data so return directly
+        if 'created_at__gt' in request.query_params:
+            return paginated_list
+        # if page down，meaning did not extract all data from cached_list, return directly
+        if self.has_next_page:
+            return paginated_list
+        # if cached_list's length less than limit, meaning has all data
+        if len(cached_list) < settings.REDIS_LIST_LENGTH_LIMIT:
+            return paginated_list
+        # go search at database
+        return None
 
     def get_paginated_response(self, data):
         return Response({

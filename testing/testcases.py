@@ -8,6 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from newsfeeds.models import NewsFeed
 from django.core.cache import caches
 from utils.redis_client import RedisClient
+from friendships.models import Friendship
 
 class TestCase(DjangoTestCase):
 
@@ -30,6 +31,9 @@ class TestCase(DjangoTestCase):
         # Cannot write in User.objects.create()
         # because password needs to be incrypted, username and email need to be normalize
         return User.objects.create_user(username, email, password)
+
+    def create_friendship(self, from_user, to_user):
+        return Friendship.objects.create(from_user=from_user, to_user=to_user)
 
     def create_tweet(self, user, content=None):
         if content is None:
